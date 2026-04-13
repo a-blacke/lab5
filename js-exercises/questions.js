@@ -40,7 +40,52 @@
  *
  */
 function createAccount(accountName, openingBalance) {
-  // your implementation here
+  function deposit(amount) {
+    if (amount <= 0) {
+      return "Invalid deposit amount";
+    }
+    this.balance += amount;
+    this.transactions.push({ action: "deposit", amount: amount });
+    return "OK";
+  }
+
+  function withdraw(amount) {
+    if (amount <= 0) {
+      return "Invalid withdrawal amount";
+    }
+    if (this.balance < amount) {
+      return "Withdraw over balance";
+    }
+    this.balance -= amount;
+    this.transactions.push({ action: "withdraw", amount: amount });
+    return "OK";
+  }
+
+  function checkAccount() {
+    return {
+      transactions: this.transactions,
+      balance: this.balance,
+    };
+  }
+
+  if (new.target) {
+    this.balance = openingBalance;
+    this.name = accountName;
+    this.deposit = deposit.bind(this);
+    this.withdraw = withdraw.bind(this);
+    this.checkAccount = checkAccount.bind(this);
+    this.transactions = [{ action: "open", amount: openingBalance }];
+  } else {
+    const ret = {
+      action: "open",
+      balance: openingBalance,
+      transactions: [{ action: "open", amount: openingBalance }],
+    };
+    ret.deposit = deposit.bind(ret);
+    ret.withdraw = withdraw.bind(ret);
+    ret.checkAccount = checkAccount.bind(ret);
+    return ret;
+  }
 }
 
 /**
@@ -56,7 +101,31 @@ function createAccount(accountName, openingBalance) {
  * Implementation:
  */
 function Person(initialName, initialAge) {
-  // your implementation here
+  let name = capitalizeName(initialName);
+  let age = initialAge;
+
+  function capitalizeName(name) {
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  }
+
+  return {
+    get getName() {
+      return name;
+    },
+    set setName(newName) {
+      name = capitalizeName(newName);
+    },
+    get getAge() {
+      return age;
+    },
+    set setAge(newAge) {
+      if (typeof newAge === "number" && newAge >= 0 && newAge <= 120) {
+        age = newAge;
+      } else {
+        console.log("Invalid age provided");
+      }
+    },
+  };
 }
 
 /**
@@ -92,10 +161,30 @@ function Person(initialName, initialAge) {
 
 class Car {
   // your implementation here
+  constructor(make, model, year) {
+    this.make = make
+    this.model = model
+    this.year = year
+  }
+  getInfo() {
+    return `${this.make} ${this.model} ${this.year}`
+  }
+
 }
 
 class ElectricCar extends Car {
   // your implementation here
+  constructor(make, model, year, batteryLevel) {
+    super(make, model, year);
+    this.batteryLevel = batteryLevel;
+  }
+  getBatteryInfo() {
+    return `Battery level at ${this.batteryLevel}%`;
+  }
+  getInfo() {
+    return `${this.make} ${this.model} ${this.year} with ${this.batteryLevel}% battery`
+    // Can also write return `${super.getInfo()} with ${this.batteryLevel}% battery`
+  }
 }
 
 /**
@@ -113,11 +202,13 @@ class ElectricCar extends Car {
 // Extending Array.prototype to include serialize method
 Array.prototype.serialize = function () {
   // your implementation here
+  return JSON.stringify(this);
 };
 
 // Extending Array.prototype to include deserialize method
 Array.prototype.deserialize = function (json) {
   // your implementation here
+  this.splice(0, this.length, ...JSON.parse(json))
 };
 
 /**
@@ -140,7 +231,47 @@ Array.prototype.deserialize = function (json) {
  */
 
 function createShoppingCart() {
-  // your implementation here
+  let items = [];
+
+  return {
+    addItem: function (id, name, price) {
+      const existingItem = items.find((item) => item.id === id);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        items.push({ id, name, price, quantity: 1 });
+      }
+    },
+
+    removeItem: function (id) {
+      const index = items.findIndex((item) => item.id === id);
+      if (index !== -1) {
+        items[index].quantity -= 1;
+        if (items[index].quantity === 0) {
+          items.splice(index, 1);
+        }
+      }
+    },
+
+    get totalPrice() {
+      return items.reduce(
+        (total, item) => total + item.price * item.quantity,
+        0
+      );
+    },
+
+    get itemNumber() {
+      return items.reduce((total, item) => total + item.quantity, 0);
+    },
+
+    check: function () {
+      return {
+        items: items,
+        itemNumber: this.itemNumber,
+        total: this.totalPrice,
+      };
+    },
+  };
 }
 
 module.exports = {
